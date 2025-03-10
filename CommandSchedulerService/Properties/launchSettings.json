@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "CommandSchedulerService": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\ProgramData\\CommandScheduler\\tasks.json",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true
+    }
+  },
+  "$schema": "https://json.schemastore.org/launchsettings.json"
+}

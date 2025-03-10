@@ -5,6 +5,10 @@ VisualStudioVersion = 17.13.35818.85
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandScheduler", "CommandScheduler\CommandScheduler.csproj", "{57E345F2-53D0-4763-9633-DAD67D3AF2AE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandSchedulerService", "CommandSchedulerService\CommandSchedulerService.csproj", "{DF81ACE7-6D9A-49D5-97CC-02C0EAFCCB42}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandSchedulerService2", "CommandSchedulerService2\CommandSchedulerService2.csproj", "{35E16C64-9B7B-4F60-8F3F-0A67284AED5E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{57E345F2-53D0-4763-9633-DAD67D3AF2AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57E345F2-53D0-4763-9633-DAD67D3AF2AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{57E345F2-53D0-4763-9633-DAD67D3AF2AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF81ACE7-6D9A-49D5-97CC-02C0EAFCCB42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF81ACE7-6D9A-49D5-97CC-02C0EAFCCB42}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF81ACE7-6D9A-49D5-97CC-02C0EAFCCB42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF81ACE7-6D9A-49D5-97CC-02C0EAFCCB42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35E16C64-9B7B-4F60-8F3F-0A67284AED5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35E16C64-9B7B-4F60-8F3F-0A67284AED5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35E16C64-9B7B-4F60-8F3F-0A67284AED5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35E16C64-9B7B-4F60-8F3F-0A67284AED5E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

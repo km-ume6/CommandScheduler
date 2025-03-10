@@ -1,4 +1,6 @@
-﻿using Microsoft.Win32;
+﻿using csConfigurationManager;
+using csTaskItem;
+using Microsoft.Win32;
 using System.ComponentModel;
 using System.Diagnostics;
 
@@ -9,6 +11,8 @@ namespace CommandScheduler
         private TaskItem taskItem = new();
         private DoWorkEventArgs doWorkEventArgs = new(null);
         private ListViewItem? selectedItem;
+        private Config? config = null;
+        private readonly ConfigurationManager<Config> cmConfig = new();
         private readonly ConfigurationManager<List<TaskItem>> cmTasks = new("tasks.json");
         private readonly ConfigurationManager<Dictionary<string, int>> cmColumns = new("columnWidths.json");
         private TextBox? textBoxCurrent;
@@ -39,7 +43,7 @@ namespace CommandScheduler
 
         string NormalizeFileName(string path)
         {
-            if (File.Exists(path) && path.Contains(" "))
+            if (File.Exists(path) && path.Contains(' '))
             {
                 path = $"\"{path}\"";
             }
@@ -47,48 +51,59 @@ namespace CommandScheduler
             return path;
         }
 
+        private TaskItem Convert(ListViewItem lvItem)
+        {
+            var texts = lvItem.SubItems.Cast<ListViewItem.ListViewSubItem>()
+                                       .Select(subItem => subItem.Text)
+                                       .ToList();
+
+            return new TaskItem(texts);
+        }
+
         private void StartProcess(ListViewItem lvItem)
         {
-            StartProcess(new TaskItem(lvItem));
+            StartProcess(Convert(lvItem));
         }
 
         private void StartProcess(TaskItem taskItem)
         {
-            var start = new ProcessStartInfo
-            {
-                FileName = taskItem.FileName,
-                Arguments = $"{NormalizeFileName(taskItem.Script)} {NormalizeFileName(taskItem.Arguments)}",
-                WorkingDirectory = taskItem.WorkingFolder,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
+            //var start = new ProcessStartInfo
+            //{
+            //    FileName = taskItem.FileName,
+            //    Arguments = $"{NormalizeFileName(taskItem.Script)} {NormalizeFileName(taskItem.Arguments)}",
+            //    WorkingDirectory = taskItem.WorkingFolder,
+            //    UseShellExecute = false,
+            //    RedirectStandardOutput = true,
+            //    RedirectStandardError = true
+            //};
 
-            using (var process = Process.Start(start))
-            {
-                if (process != null)
-                {
-                    using (var reader = process.StandardOutput)
-                    {
-                        var result = reader.ReadToEnd();
-                        if (!string.IsNullOrEmpty(result))
-                        {
-                            var logFileName = Path.Combine(cmTasks.GetFolder()!, $"{taskItem.Title}.txt");
-                            if (!string.IsNullOrEmpty(logFileName))
-                            {
-                                File.WriteAllText(NormalizeFileName(logFileName), result);
-                            }
-                        }
-                    }
-                }
-            }
+            //using (var process = Process.Start(start))
+            //{
+            //    if (process != null)
+            //    {
+            //        using (var reader = process.StandardOutput)
+            //        {
+            //            var result = reader.ReadToEnd();
+            //            if (!string.IsNullOrEmpty(result))
+            //            {
+            //                var logFileName = Path.Combine(cmTasks.GetFolder()!, $"{taskItem.Title}.txt");
+            //                if (!string.IsNullOrEmpty(logFileName))
+            //                {
+            //                    File.WriteAllText(NormalizeFileName(logFileName), result);
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
+            
+            taskItem.StartProcess(cmTasks.GetFolder()!);
         }
 
         void UpdateTaskList()
         {
             pauseWork = true;
             tasksForLoop.Clear();
-            tasksForLoop.AddRange(listViewTasks.Items.Cast<ListViewItem>().Select(item => new TaskItem(item)));
+            tasksForLoop.AddRange(listViewTasks.Items.Cast<ListViewItem>().Select(item => Convert(item)));
             pauseWork = false;
         }
 
@@ -114,7 +129,7 @@ namespace CommandScheduler
         {
             if (textBoxDateTimeNow != null)
             {
-                textBoxDateTimeNow.Text = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
+                textBoxDateTimeNow.Text = DateTime.Now.ToString("HH:mm:ss");
             }
         }
 

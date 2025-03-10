@@ -1,7 +1,8 @@
 ﻿using System.CodeDom;
 using System.ComponentModel;
+using System.Diagnostics;
 
-namespace CommandScheduler
+namespace csTaskItem
 {
     internal class Cycle
     {
@@ -35,6 +36,11 @@ namespace CommandScheduler
         public int Minute()
         {
             return GetCycleValue('M', 'm');
+        }
+
+        public int Second()
+        {
+            return GetCycleValue('S', 's');
         }
 
         private int GetCycleValue(char upper, char lower)
@@ -93,9 +99,17 @@ namespace CommandScheduler
             ThatDateTime = DateTime.Now;
         }
 
-        public TaskItem(ListViewItem lvItem) : this()
+        public TaskItem(List<string> strItem) : this()
         {
-            Convert(lvItem);
+            Title = strItem[0];
+            FileName = strItem[1];
+            Script = strItem[2];
+            Arguments = strItem[3];
+            WorkingFolder = strItem[4];
+            StartDateTime = !string.IsNullOrEmpty(strItem[5]) ? DateTime.Parse(strItem[5]) : DateTime.MinValue;
+            Cycle = strItem[6];
+            NextDateTime = InitNextDateTime();
+            Enable = strItem[8];
         }
 
         public bool CheckCycle()
@@ -106,26 +120,13 @@ namespace CommandScheduler
             }
 
             char firstChar = Cycle[0];
-            if (!"DdHhMm".Contains(firstChar))
+            if (!"DdHhMmSs".Contains(firstChar))
             {
                 return false;
             }
 
             string numberPart = Cycle.Substring(1);
             return int.TryParse(numberPart, out _);
-        }
-
-        public void Convert(ListViewItem lvItem)
-        {
-            Title = lvItem.SubItems[0].Text;
-            FileName = lvItem.SubItems[1].Text;
-            Script = lvItem.SubItems[2].Text;
-            Arguments = lvItem.SubItems[3].Text;
-            WorkingFolder = lvItem.SubItems[4].Text;
-            StartDateTime = !string.IsNullOrEmpty(lvItem.SubItems[5].Text) ? DateTime.Parse(lvItem.SubItems[5].Text) : DateTime.MinValue;
-            Cycle = lvItem.SubItems[6].Text;
-            NextDateTime = InitNextDateTime();
-            Enable = lvItem.SubItems[8].Text;
         }
 
         public DateTime InitNextDateTime()
@@ -138,7 +139,7 @@ namespace CommandScheduler
                     DateTime dt = StartDateTime;
                     while (dt <= ThatDateTime)
                     {
-                        dt = dt.AddDays(CycleValue.Day()).AddHours(CycleValue.Hour()).AddMinutes(CycleValue.Minute());
+                        dt = dt.AddDays(CycleValue.Day()).AddHours(CycleValue.Hour()).AddMinutes(CycleValue.Minute()).AddSeconds(CycleValue.Second());
                     }
 
                     NextDateTime = dt;
@@ -154,7 +155,7 @@ namespace CommandScheduler
 
         public void CalcNextDateTime()
         {
-            NextDateTime = NextDateTime.AddDays(CycleValue.Day()).AddHours(CycleValue.Hour()).AddMinutes(CycleValue.Minute());
+            NextDateTime = NextDateTime.AddDays(CycleValue.Day()).AddHours(CycleValue.Hour()).AddMinutes(CycleValue.Minute()).AddSeconds(CycleValue.Second());
         }
 
         public string NextDateTimeToString()
@@ -196,6 +197,64 @@ namespace CommandScheduler
                     default: throw new IndexOutOfRangeException("Invalid index");
                 }
             }
+        }
+        public async Task StartProcess(string logPath)
+        {
+            string fileName = NormalizeFileName(FileName != string.Empty ? FileName : Script);
+            string lfn = Title != "" ? Title : "Title";
+            string logFileName = Path.Combine(logPath, $"{lfn}.log");
+            bool flag = FileName != string.Empty;
+
+            try
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = fileName,
+                    Arguments = Arguments,
+                    WorkingDirectory = WorkingFolder,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = flag,
+                    RedirectStandardError = flag,
+                    UseShellExecute = !flag,
+                    CreateNoWindow = true
+                };
+
+                using Process process = new Process { StartInfo = startInfo };
+                process.Start();
+
+                string output = "";
+                string error = "";
+                if (flag)
+                {
+                    output = await process.StandardOutput.ReadToEndAsync();
+                    error = await process.StandardError.ReadToEndAsync();
+                }
+                process.WaitForExit();
+
+                if (process.ExitCode == 0)
+                {
+                    File.AppendAllText(logFileName, $"Task {Title} started successfully.\nOutput: {output}\n");
+                }
+                else
+                {
+                    File.AppendAllText(logFileName, $"Task {Title} failed to start.\nError: {error}\n");
+                }
+            }
+            catch (Exception ex)
+            {
+                File.AppendAllText(logFileName, $"Task {Title} encountered an error: {ex.Message}\n");
+                throw;
+            }
+        }
+
+        string NormalizeFileName(string path)
+        {
+            if (File.Exists(path) && path.Contains(' '))
+            {
+                path = $"\"{path}\"";
+            }
+
+            return path;
         }
     }
 }

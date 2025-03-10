@@ -46,6 +46,12 @@
             ToolStripMenuItemForStartp = new ToolStripMenuItem();
             ToolStripMenuItemRegister = new ToolStripMenuItem();
             ToolStripMenuItemUnregister = new ToolStripMenuItem();
+            ToolStripMenuItemAboutService = new ToolStripMenuItem();
+            ToolStripMenuItemStartService = new ToolStripMenuItem();
+            ToolStripMenuItemStopService = new ToolStripMenuItem();
+            ToolStripMenuItemCreateService = new ToolStripMenuItem();
+            ToolStripMenuItemDeleteService = new ToolStripMenuItem();
+            ToolStripMenuItemGetServiceStatus = new ToolStripMenuItem();
             label1 = new Label();
             label2 = new Label();
             label3 = new Label();
@@ -74,6 +80,7 @@
             contextMenuStripTray = new ContextMenuStrip(components);
             openToolStripMenuItem = new ToolStripMenuItem();
             exitToolStripMenuItem = new ToolStripMenuItem();
+            checkBoxLoop = new CheckBox();
             contextMenuStrip1.SuspendLayout();
             contextMenuStripTray.SuspendLayout();
             SuspendLayout();
@@ -131,9 +138,9 @@
             // contextMenuStrip1
             // 
             contextMenuStrip1.ImageScalingSize = new Size(20, 20);
-            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { ToolStripMenuItemSaveColumnWidth, ToolStripMenuItemRun, ToolStripMenuItemForStartp });
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { ToolStripMenuItemSaveColumnWidth, ToolStripMenuItemRun, ToolStripMenuItemForStartp, ToolStripMenuItemAboutService });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(154, 76);
+            contextMenuStrip1.Size = new Size(154, 100);
             // 
             // ToolStripMenuItemSaveColumnWidth
             // 
@@ -159,16 +166,58 @@
             // ToolStripMenuItemRegister
             // 
             ToolStripMenuItemRegister.Name = "ToolStripMenuItemRegister";
-            ToolStripMenuItemRegister.Size = new Size(224, 26);
+            ToolStripMenuItemRegister.Size = new Size(122, 26);
             ToolStripMenuItemRegister.Text = "登録";
             ToolStripMenuItemRegister.Click += ToolStripMenuItemRegister_Click;
             // 
             // ToolStripMenuItemUnregister
             // 
             ToolStripMenuItemUnregister.Name = "ToolStripMenuItemUnregister";
-            ToolStripMenuItemUnregister.Size = new Size(224, 26);
+            ToolStripMenuItemUnregister.Size = new Size(122, 26);
             ToolStripMenuItemUnregister.Text = "削除";
             ToolStripMenuItemUnregister.Click += ToolStripMenuItemUnregister_Click;
+            // 
+            // ToolStripMenuItemAboutService
+            // 
+            ToolStripMenuItemAboutService.DropDownItems.AddRange(new ToolStripItem[] { ToolStripMenuItemStartService, ToolStripMenuItemStopService, ToolStripMenuItemCreateService, ToolStripMenuItemDeleteService, ToolStripMenuItemGetServiceStatus });
+            ToolStripMenuItemAboutService.Name = "ToolStripMenuItemAboutService";
+            ToolStripMenuItemAboutService.Size = new Size(153, 24);
+            ToolStripMenuItemAboutService.Text = "サービス";
+            // 
+            // ToolStripMenuItemStartService
+            // 
+            ToolStripMenuItemStartService.Name = "ToolStripMenuItemStartService";
+            ToolStripMenuItemStartService.Size = new Size(122, 26);
+            ToolStripMenuItemStartService.Text = "開始";
+            ToolStripMenuItemStartService.Click += ToolStripMenuItemStartService_Click;
+            // 
+            // ToolStripMenuItemStopService
+            // 
+            ToolStripMenuItemStopService.Name = "ToolStripMenuItemStopService";
+            ToolStripMenuItemStopService.Size = new Size(122, 26);
+            ToolStripMenuItemStopService.Text = "停止";
+            ToolStripMenuItemStopService.Click += ToolStripMenuItemStopService_Click;
+            // 
+            // ToolStripMenuItemCreateService
+            // 
+            ToolStripMenuItemCreateService.Name = "ToolStripMenuItemCreateService";
+            ToolStripMenuItemCreateService.Size = new Size(122, 26);
+            ToolStripMenuItemCreateService.Text = "登録";
+            ToolStripMenuItemCreateService.Click += ToolStripMenuItemCreateService_Click;
+            // 
+            // ToolStripMenuItemDeleteService
+            // 
+            ToolStripMenuItemDeleteService.Name = "ToolStripMenuItemDeleteService";
+            ToolStripMenuItemDeleteService.Size = new Size(122, 26);
+            ToolStripMenuItemDeleteService.Text = "削除";
+            ToolStripMenuItemDeleteService.Click += ToolStripMenuItemDeleteService_Click;
+            // 
+            // ToolStripMenuItemGetServiceStatus
+            // 
+            ToolStripMenuItemGetServiceStatus.Name = "ToolStripMenuItemGetServiceStatus";
+            ToolStripMenuItemGetServiceStatus.Size = new Size(122, 26);
+            ToolStripMenuItemGetServiceStatus.Text = "状況";
+            ToolStripMenuItemGetServiceStatus.Click += ToolStripMenuItemGetServiceStatus_Click;
             // 
             // label1
             // 
@@ -304,7 +353,7 @@
             textBoxDateTimeNow.Location = new Point(655, 179);
             textBoxDateTimeNow.Name = "textBoxDateTimeNow";
             textBoxDateTimeNow.ReadOnly = true;
-            textBoxDateTimeNow.Size = new Size(133, 25);
+            textBoxDateTimeNow.Size = new Size(62, 25);
             textBoxDateTimeNow.TabIndex = 15;
             textBoxDateTimeNow.TextAlign = HorizontalAlignment.Right;
             // 
@@ -422,11 +471,24 @@
             exitToolStripMenuItem.Text = "Exit";
             exitToolStripMenuItem.Click += exitToolStripMenuItem_Click;
             // 
+            // checkBoxLoop
+            // 
+            checkBoxLoop.AutoSize = true;
+            checkBoxLoop.Checked = true;
+            checkBoxLoop.CheckState = CheckState.Checked;
+            checkBoxLoop.Location = new Point(723, 181);
+            checkBoxLoop.Name = "checkBoxLoop";
+            checkBoxLoop.Size = new Size(65, 24);
+            checkBoxLoop.TabIndex = 26;
+            checkBoxLoop.Text = "Loop";
+            checkBoxLoop.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(checkBoxLoop);
             Controls.Add(buttonClear);
             Controls.Add(checkBoxEnable);
             Controls.Add(textBoxCycle);
@@ -509,5 +571,12 @@
         private ToolStripMenuItem ToolStripMenuItemForStartp;
         private ToolStripMenuItem ToolStripMenuItemRegister;
         private ToolStripMenuItem ToolStripMenuItemUnregister;
+        private ToolStripMenuItem ToolStripMenuItemAboutService;
+        private ToolStripMenuItem ToolStripMenuItemStartService;
+        private ToolStripMenuItem ToolStripMenuItemStopService;
+        private ToolStripMenuItem ToolStripMenuItemCreateService;
+        private ToolStripMenuItem ToolStripMenuItemDeleteService;
+        private ToolStripMenuItem ToolStripMenuItemGetServiceStatus;
+        private CheckBox checkBoxLoop;
     }
 }

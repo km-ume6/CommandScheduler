@@ -1,3 +1,5 @@
+using csTaskItem;
+using Microsoft.VisualBasic;
 using Microsoft.Win32;
 using System;
 using System.Diagnostics;
@@ -33,14 +35,22 @@ namespace CommandScheduler
 
             LoadColumnWidths();
 
-            ProcessCommandLineArgs();
+            ProcessCommandLineArgs();   // 起動オプションの解析
         }
 
+        /// <summary>
+        /// トレイアイコンのダブルクリックイベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void NotifyIcon_DoubleClick(object sender, EventArgs e)
         {
-            ShowForm();
+            ShowForm(); // アプリケーションウィンドウを表示
         }
 
+        /// <summary>
+        /// アプリケーションウィンドウを表示する
+        /// </summary>
         private void ShowForm()
         {
             this.Show();
@@ -48,6 +58,10 @@ namespace CommandScheduler
             this.BringToFront();
         }
 
+        /// <summary>
+        /// フォームのリサイズイベント
+        /// </summary>
+        /// <param name="e"></param>
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
@@ -57,6 +71,10 @@ namespace CommandScheduler
             }
         }
 
+        /// <summary>
+        /// 起動オプションの解析
+        /// パラメータを２個取り、最初のパラメータが"run"で、２個目が数値の場合、自動実行モードとして起動
+        /// </summary>
         private void ProcessCommandLineArgs()
         {
             string[] args = Environment.GetCommandLineArgs();
@@ -67,6 +85,11 @@ namespace CommandScheduler
             }
         }
 
+        /// <summary>
+        /// メインウィンドウのボタンクリックイベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void button_Click(object sender, EventArgs e)
         {
             if (sender is Button button)
@@ -93,6 +116,10 @@ namespace CommandScheduler
             }
         }
 
+        /// <summary>
+        /// 各コントロールのプロパティをTaskItemに反映
+        /// </summary>
+        /// <exception cref="InvalidOperationException"></exception>
         private void UpdateTaskItemFromControls()
         {
             for (int i = 0; i < controlList.Count; i++)
@@ -114,6 +141,9 @@ namespace CommandScheduler
             }
         }
 
+        /// <summary>
+        /// タスクリストをListViewの表示に反映
+        /// </summary>
         private void AddTaskItemToListView()
         {
             listViewTasks.Items.Add(new ListViewItem(new string[]
@@ -130,6 +160,10 @@ namespace CommandScheduler
             }));
         }
 
+        /// <summary>
+        /// ListViewで選択されている項目の内容を更新
+        /// </summary>
+        /// <exception cref="InvalidOperationException"></exception>
         private void UpdateSelectedTaskItemInListView()
         {
             if (listViewTasks.SelectedItems.Count > 0 && selectedItem != null)
@@ -155,6 +189,10 @@ namespace CommandScheduler
             }
         }
 
+        /// <summary>
+        /// 各コントロールの表示を初期化
+        /// </summary>
+        /// <exception cref="InvalidOperationException"></exception>
         private void ClearControls()
         {
             foreach (Control? control in controlList)
@@ -218,7 +256,7 @@ namespace CommandScheduler
             List<TaskItem> tasks = new();
             foreach (ListViewItem item in listViewTasks.Items)
             {
-                tasks.Add(new TaskItem(item));
+                tasks.Add(Convert(item));
             }
 
             cmTasks.Save(tasks);
@@ -228,7 +266,7 @@ namespace CommandScheduler
         {
             while (!e.Cancel)
             {
-                if (!pauseWork)
+                if (!pauseWork && checkBoxLoop.Checked)
                 {
                     BeginInvoke(new Action(InvokeFunction_Clock));
                     LoopTasks();
@@ -245,6 +283,13 @@ namespace CommandScheduler
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            config = cmConfig.Load();
+            if (config == null)
+            {
+                config = new();
+                cmConfig.Save(config);
+            }
+
             var tasks = cmTasks.Load();
             if (tasks != null)
             {
@@ -373,6 +418,110 @@ namespace CommandScheduler
         private void ToolStripMenuItemUnregister_Click(object sender, EventArgs e)
         {
             ForStartup(register: false);
+        }
+
+
+        private void ToolStripMenuItemCreateService_Click(object sender, EventArgs e)
+        {
+            ManageService("create");
+        }
+
+        private void ToolStripMenuItemStartService_Click(object sender, EventArgs e)
+        {
+            ManageService("start");
+        }
+
+        private void ToolStripMenuItemStopService_Click(object sender, EventArgs e)
+        {
+            ManageService("stop");
+        }
+
+        private void ToolStripMenuItemDeleteService_Click(object sender, EventArgs e)
+        {
+            ManageService("delete");
+        }
+
+        private void ToolStripMenuItemGetServiceStatus_Click(object sender, EventArgs e)
+        {
+            ManageService("query");
+        }
+
+        private void ManageService(string command)
+        {
+            if (config == null)
+            {
+                MessageBox.Show("設定が読み込まれていません。");
+                return;
+            }
+
+            string servicePath = config.ServicePath;
+            string serviceArgs = config.ServiceArg;
+            string serviceName = Path.GetFileNameWithoutExtension(servicePath);
+
+            if (string.IsNullOrEmpty(servicePath))
+            {
+                MessageBox.Show("サービスの実行ファイルパスが設定されていません。");
+                return;
+            }
+
+            string scCommand = command.ToLower() switch
+            {
+                "create" => $"sc create {serviceName} binPath= \"{servicePath} {serviceArgs}\"",
+                "delete" => $"sc delete {serviceName}",
+                "start" => $"sc start {serviceName}",
+                "stop" => $"sc stop {serviceName}",
+                "query" => $"sc query {serviceName}",
+                _ => throw new ArgumentException("無効なコマンドです。")
+            };
+
+            bool flag = command.ToLower() == "query" ? false : true;
+
+            ProcessStartInfo processStartInfo = new ProcessStartInfo("cmd.exe", "/c " + scCommand)
+            {
+                Verb = "runas",
+                UseShellExecute = flag,
+                CreateNoWindow = false,
+                RedirectStandardOutput = !flag,
+                RedirectStandardError = !flag
+            };
+
+            string output = "";
+            string error = "";
+            try
+            {
+                using Process? process = Process.Start(processStartInfo);
+                if (process != null)
+                {
+                    if (!flag)
+                    {
+                        output = process.StandardOutput.ReadToEnd();
+                        error = process.StandardError.ReadToEnd();
+                    }
+                    process.WaitForExit();
+
+                    if (process.ExitCode == 0)
+                    {
+                        MessageBox.Show($"{command} コマンドが成功しました。\n{output}");
+                    }
+                    else
+                    {
+                        MessageBox.Show($"{command} コマンドが失敗しました。\nEitCode:{process.ExitCode}\nOutput:{output}\nError:{error}");
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("プロセスの開始に失敗しました。");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"{command} コマンドの実行中にエラーが発生しました: " + ex.Message);
+            }
+        }
+
+        private void checkBoxLoop_CheckedChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

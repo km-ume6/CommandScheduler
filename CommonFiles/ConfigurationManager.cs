@@ -1,11 +1,14 @@
+using System;
+using System.IO;
 using System.Text.Json;
 
-namespace CommandScheduler
+//namespace CommandScheduler
+namespace csConfigurationManager
 {
     public class ConfigurationManager<T>
     {
-        private string _filePath = null!;
-        public string? GetFolder() => Path.GetDirectoryName(_filePath);
+        private string _filePath = null;
+        public string GetFolder() => Path.GetDirectoryName(_filePath) ?? "";
 
         public ConfigurationManager()
         {
@@ -43,6 +46,11 @@ namespace CommandScheduler
             _filePath = Path.Combine(Path.GetDirectoryName(_filePath)!, fileName);
         }
 
+        /// <summary>
+        /// Set the default path for the configuration file.
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <exception cref="InvalidOperationException"></exception>
         private void SetDefaultPath(string fileName = "")
         {
             string? executablePath = Environment.ProcessPath;
