@@ -95,8 +95,8 @@ namespace CommandScheduler
             //        }
             //    }
             //}
-            
-            taskItem.StartProcess(cmTasks.GetFolder()!);
+
+            _ =  taskItem.StartProcess(cmTasks.GetFolder()!);
         }
 
         void UpdateTaskList()

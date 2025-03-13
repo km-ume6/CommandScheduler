@@ -200,7 +200,22 @@ namespace csTaskItem
         }
         public async Task StartProcess(string logPath)
         {
-            string fileName = NormalizeFileName(FileName != string.Empty ? FileName : Script);
+            string fileName, arguments = string.Empty;
+            if (FileName != string.Empty)
+            {
+                fileName = NormalizeFileName(FileName);
+                if (Script != string.Empty)
+                {
+                    arguments = $"{NormalizeFileName(Script)}" + Arguments != string.Empty ? " " : "";
+                }
+                arguments += Arguments;
+            }
+            else
+            {
+                fileName = NormalizeFileName(Script);
+                arguments = Arguments;
+            }
+
             string lfn = Title != "" ? Title : "Title";
             string logFileName = Path.Combine(logPath, $"{lfn}.log");
             bool flag = FileName != string.Empty;
@@ -210,9 +225,9 @@ namespace csTaskItem
                 ProcessStartInfo startInfo = new ProcessStartInfo
                 {
                     FileName = fileName,
-                    Arguments = Arguments,
+                    Arguments = arguments,
                     WorkingDirectory = WorkingFolder,
-                    RedirectStandardInput = true,
+                    RedirectStandardInput = flag,
                     RedirectStandardOutput = flag,
                     RedirectStandardError = flag,
                     UseShellExecute = !flag,
@@ -229,30 +244,30 @@ namespace csTaskItem
                     output = await process.StandardOutput.ReadToEndAsync();
                     error = await process.StandardError.ReadToEndAsync();
                 }
-                process.WaitForExit();
+                await process.WaitForExitAsync();
 
                 if (process.ExitCode == 0)
                 {
-                    File.AppendAllText(logFileName, $"Task {Title} started successfully.\nOutput: {output}\n");
+                    await File.AppendAllTextAsync(logFileName, $"Task {Title} started successfully.\nOutput: {output}\n");
                 }
                 else
                 {
-                    File.AppendAllText(logFileName, $"Task {Title} failed to start.\nError: {error}\n");
+                    await File.AppendAllTextAsync(logFileName, $"Task {Title} failed to start.\nError: {error}\n");
                 }
             }
             catch (Exception ex)
             {
-                File.AppendAllText(logFileName, $"Task {Title} encountered an error: {ex.Message}\n");
+                await File.AppendAllTextAsync(logFileName, $"Task {Title} encountered an error: {ex.Message}\n");
                 throw;
             }
         }
 
         string NormalizeFileName(string path)
         {
-            if (File.Exists(path) && path.Contains(' '))
-            {
-                path = $"\"{path}\"";
-            }
+            //if (path.Contains(" "))
+            //{
+            //    path = $"\"{path}\"";
+            //}
 
             return path;
         }
